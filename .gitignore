@@ -1,2 +1,7 @@
-﻿# LibreOffice lock file.
+﻿# Wails.
+build/bin
+node_modules
+frontend/dist
+
+# LibreOffice lock file.
 *.~lock*
