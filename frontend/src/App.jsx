@@ -1,21 +1,29 @@
 import { useState } from 'react';
 import './App.css';
-import { Greet } from "../wailsjs/go/main/App";
 
 import { Layout, Table, Button, Space, Switch } from 'antd';
+
+import { UpdatePortList } from '../wailsjs/go/main/App'
 
 const { Sider, Content } = Layout;
 
 function App() {
+    const [portListData, setPortListData] = useState([]);
+
+    async function updatePortList() {
+        console.log("front: updatePortList()");
+
+        let portList = await UpdatePortList();
+        portList = portList.map((portInfo, index) => ({ ...portInfo, key: index }));
+        setPortListData(portList);
+        console.table(portList);
+    }
+
     const columns = [
-        { title: 'name', dataIndex: 'name', key: 'name' },
-        { title: 'usb', dataIndex: 'usb', key: 'usb' },
-        { title: 'vid', dataIndex: 'vid', key: 'vid' },
-        { title: 'pid', dataIndex: 'pid', key: 'pid' }
-    ];
-    const data = [
-        { key: 1, name: 'COM1', usb: 'false', vid: "-", pid: "-" },
-        { key: 2, name: 'COM2', usb: 'true', vid: '0x123', pid: '0x456' }
+        { key: 0, title: 'Name', dataIndex: 'Name' },
+        { key: 1, title: 'Usb', dataIndex: 'Usb' },
+        { key: 2, title: 'Vid', dataIndex: 'Vid' },
+        { key: 3, title: 'Pid', dataIndex: 'Pid' }
     ];
 
     return (
@@ -30,7 +38,7 @@ function App() {
                             <Space>
                                 Автоскан:
                                 <Switch defaultChecked />
-                                <Button type="primary">Обновить</Button>
+                                <Button type="primary" onClick={updatePortList}>Обновить</Button>
                             </Space>
                         </div>
 
@@ -38,7 +46,7 @@ function App() {
                         <div style={{ flex: 1, overflow: 'auto' }}>
                             <Table
                                 columns={columns}
-                                dataSource={data}
+                                dataSource={portListData}
                                 pagination={false}
                                 size="small"
                             />
