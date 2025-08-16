@@ -1,14 +1,30 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './App.css';
 
-import { Layout, Table, Button, Space, Switch } from 'antd';
-
 import { UpdatePortList } from '../wailsjs/go/main/App'
+
+import { Layout, Table, Button, Space, Switch } from 'antd';
 
 const { Sider, Content } = Layout;
 
 function App() {
     const [portListData, setPortListData] = useState([]);
+    const [autoScan, setAutoScan] = useState(false);
+
+    let autoScanIntervalId;
+    useEffect(() => {
+        if (autoScan)
+            autoScanIntervalId = setInterval(updatePortList, 1000);
+        else {
+            clearInterval(autoScanIntervalId);
+            autoScanIntervalId = null;
+        }
+
+        return () => {
+            clearInterval(autoScanIntervalId);
+            autoScanIntervalId = null;
+        };
+    }, [autoScan]);
 
     async function updatePortList() {
         console.log("front: updatePortList()");
@@ -37,7 +53,8 @@ function App() {
                         <div style={{ marginBottom: '16px' }}>
                             <Space>
                                 Автоскан:
-                                <Switch defaultChecked />
+                                <Switch onChange={setAutoScan} />
+
                                 <Button type="primary" onClick={updatePortList}>Обновить</Button>
                             </Space>
                         </div>
