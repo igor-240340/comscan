@@ -5,16 +5,20 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 
-	// "go.bug.st/serial"
+	"go.bug.st/serial"
 	"go.bug.st/serial/enumerator"
 )
 
+// Информация о порте.
 type ComPortInfo struct {
-	Name string
-	Usb  string
-	Vid  string
-	Pid  string
+	Name         string
+	Usb          string
+	Vid          string
+	Pid          string
+	SentData     string // Строки ping/pong
+	ReceivedData string // для портов, подпадающих по условие из ТЗ.
 }
 
 // App struct
@@ -33,36 +37,98 @@ func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 }
 
+// Получает новый список портов.
+// А для тех, которые подпадают под условие из ТЗ, делает пинг.
+//
+// NOTE: Здесь для простоты пишем/читаем порты последовательно, но
+// можно попробовать открыть и запустить запись/чтение сразу по N портам параллельно,
+// дожидаясь результатов по всем портам по аналогии с 'await Promise.all()'.
+// Я знаю, что в Go есть корутины, но я пока с ними не разбирался.
+// Хочу написать юнит-тесты, поэтому навряд ли доберусь до корутин.
+// Для начала пускай будет не самая лучшая, но хотя бы в какой-то степени корректная реализация.
 func (a *App) UpdatePortList() []ComPortInfo {
 	fmt.Println("back: UpdatePortList()")
 
-	ports, err := enumerator.GetDetailedPortsList()
+	portInfos, err := enumerator.GetDetailedPortsList()
 	if err != nil {
 		// TODO: Вернуть ошибку на фронт.
 		log.Fatal(err)
 	}
-	if len(ports) == 0 {
+	if len(portInfos) == 0 {
 		return []ComPortInfo{}
 	}
 
 	var portList []ComPortInfo
-	for _, port := range ports {
-		fmt.Printf("Port: %s\n", port.Name)
+	// var selectedPortList []ComPortInfo
+	for i, portInfo := range portInfos {
+		fmt.Printf("Port: %s\n", portInfo.Name)
 
-		if port.Product != "" {
-			fmt.Printf("   Product Name: %s\n", port.Product)
+		if portInfo.Product != "" {
+			fmt.Printf("   Product Name: %s\n", portInfo.Product)
 		}
-		if port.IsUSB {
-			fmt.Printf("   USB ID      : %s:%s\n", port.VID, port.PID)
-			fmt.Printf("   USB serial  : %s\n", port.SerialNumber)
+		if portInfo.IsUSB {
+			fmt.Printf("   USB ID      : %s:%s\n", portInfo.VID, portInfo.PID)
+			fmt.Printf("   USB serial  : %s\n", portInfo.SerialNumber)
 		}
 
 		portList = append(portList, ComPortInfo{
-			Name: port.Name,
-			Usb:  strconv.FormatBool(port.IsUSB),
-			Vid:  port.VID,
-			Pid:  port.PID,
+			Name:         portInfo.Name,
+			Usb:          strconv.FormatBool(portInfo.IsUSB),
+			Vid:          portInfo.VID,
+			Pid:          portInfo.PID,
+			SentData:     "",
+			ReceivedData: "",
 		})
+
+		// Условие.
+		var strBuff string
+		// const VID uint16 = 0x2e8a
+		// const PID1 uint16 = 0xf00a
+		// const PID2 uint16 = 0xf00f
+		const VID uint16 = 0x0193
+		const PID1 uint16 = 0x1771
+		const PID2 uint16 = 0xf00f
+		// if (port.VID == strconv.Itoa(int(VID))) && (port.PID == strconv.Itoa(int(PID1)) || port.PID == strconv.Itoa(int(PID2))) {
+		if portInfo.Name == "COM2" {
+			mode := &serial.Mode{
+				BaudRate: 115200,
+			}
+			port, err := serial.Open(portInfo.Name, mode)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			n, err := port.Write([]byte("AT+VERSION\r\n"))
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Printf("Sent %v bytes\n", n)
+
+			buff := make([]byte, 100)
+			for {
+				// Reads up to 100 bytes
+				n, err := port.Read(buff)
+				if err != nil {
+					log.Fatal(err)
+				}
+				if n == 0 {
+					fmt.Println("\nEOF")
+					break
+				}
+
+				fmt.Printf("%s", string(buff[:n]))
+				strBuff = string(buff[:n])
+
+				// If we receive a newline stop reading
+				if strings.Contains(string(buff[:n]), "\n") {
+					break
+				}
+			}
+			port.Close()
+
+			portList[i].SentData = "AT+VERSION\r\n"
+			portList[i].ReceivedData = strBuff
+		}
 	}
 
 	return portList

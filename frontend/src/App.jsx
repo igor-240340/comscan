@@ -29,17 +29,19 @@ function App() {
     async function updatePortList() {
         console.log("front: updatePortList()");
 
-        let portList = await UpdatePortList();
-        portList = portList.map((portInfo, index) => ({ ...portInfo, key: index }));
-        setPortListData(portList);
+        let res = await UpdatePortList();
+        let portList = res.map((portInfo, index) => ({ ...portInfo, key: index }));
         console.table(portList);
+        setPortListData(portList);
     }
 
-    const columns = [
+    const portListCols = [
         { key: 0, title: 'Name', dataIndex: 'Name' },
         { key: 1, title: 'Usb', dataIndex: 'Usb' },
         { key: 2, title: 'Vid', dataIndex: 'Vid' },
-        { key: 3, title: 'Pid', dataIndex: 'Pid' }
+        { key: 3, title: 'Pid', dataIndex: 'Pid' },
+        { key: 4, title: 'SentData', dataIndex: 'SentData' },
+        { key: 5, title: 'ReceivedData', dataIndex: 'ReceivedData' }
     ];
 
     return (
@@ -54,19 +56,8 @@ function App() {
                             <Space>
                                 Автоскан:
                                 <Switch onChange={setAutoScan} />
-
                                 <Button type="primary" onClick={updatePortList}>Обновить</Button>
                             </Space>
-                        </div>
-
-                        {/* Bottom table fills remaining space */}
-                        <div style={{ flex: 1, overflow: 'auto' }}>
-                            <Table
-                                columns={columns}
-                                dataSource={portListData}
-                                pagination={false}
-                                size="small"
-                            />
                         </div>
                     </div>
                 </Sider>
@@ -74,11 +65,8 @@ function App() {
                 {/* Right column */}
                 <Content style={{ padding: '16px', background: '#fff' }}>
                     <Table
-                        columns={[{ title: 'Log', dataIndex: 'log', key: 'log' }]}
-                        dataSource={[
-                            { key: 1, log: 'Application started' },
-                            { key: 2, log: 'Connected to COM3' }
-                        ]}
+                        columns={portListCols}
+                        dataSource={portListData}
                         pagination={false}
                         size="small"
                     />
