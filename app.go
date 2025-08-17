@@ -6,12 +6,9 @@ import (
 	"log"
 	"strconv"
 	"strings"
-
-	"go.bug.st/serial"
-	"go.bug.st/serial/enumerator"
 )
 
-// Информация о порте.
+// Информация о порте, которая уходит на фронт.
 type ComPortInfo struct {
 	Name         string
 	Usb          string
@@ -21,14 +18,13 @@ type ComPortInfo struct {
 	ReceivedData string // для портов, подпадающих по условие из ТЗ.
 }
 
-// App struct
 type App struct {
-	ctx context.Context
+	ctx     context.Context
+	comport ComPort
 }
 
-// NewApp creates a new App application struct
-func NewApp() *App {
-	return &App{}
+func NewApp(comport ComPort) *App {
+	return &App{comport: comport}
 }
 
 // startup is called when the app starts. The context is saved
@@ -46,16 +42,16 @@ func (a *App) startup(ctx context.Context) {
 // Я знаю, что в Go есть корутины, но я пока с ними не разбирался.
 // Хочу написать юнит-тесты, поэтому навряд ли доберусь до корутин.
 // Для начала пускай будет не самая лучшая, но хотя бы в какой-то степени корректная реализация.
-func (a *App) UpdatePortList() []ComPortInfo {
+func (a *App) UpdatePortList() ([]ComPortInfo, error) {
 	fmt.Println("back: UpdatePortList()")
 
-	portInfos, err := enumerator.GetDetailedPortsList()
+	portInfos, err := a.comport.Enumerate()
 	if err != nil {
-		// TODO: Вернуть ошибку на фронт.
-		log.Fatal(err)
+		// log.Fatal(err)
+		return []ComPortInfo{}, fmt.Errorf("something went wrong")
 	}
 	if len(portInfos) == 0 {
-		return []ComPortInfo{}
+		return []ComPortInfo{}, err
 	}
 
 	var portList []ComPortInfo
@@ -90,15 +86,12 @@ func (a *App) UpdatePortList() []ComPortInfo {
 		const PID2 uint16 = 0xf00f
 		// if (port.VID == strconv.Itoa(int(VID))) && (port.PID == strconv.Itoa(int(PID1)) || port.PID == strconv.Itoa(int(PID2))) {
 		if portInfo.Name == "COM2" {
-			mode := &serial.Mode{
-				BaudRate: 115200,
-			}
-			port, err := serial.Open(portInfo.Name, mode)
+			err := a.comport.Open(portInfo.Name)
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			n, err := port.Write([]byte("AT+VERSION\r\n"))
+			n, err := a.comport.Write([]byte("AT+VERSION\r\n"))
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -107,7 +100,7 @@ func (a *App) UpdatePortList() []ComPortInfo {
 			buff := make([]byte, 100)
 			for {
 				// Reads up to 100 bytes
-				n, err := port.Read(buff)
+				n, err := a.comport.Read(buff)
 				if err != nil {
 					log.Fatal(err)
 				}
@@ -124,12 +117,12 @@ func (a *App) UpdatePortList() []ComPortInfo {
 					break
 				}
 			}
-			port.Close()
+			a.comport.Close()
 
 			portList[i].SentData = "AT+VERSION\r\n"
 			portList[i].ReceivedData = strBuff
 		}
 	}
 
-	return portList
+	return portList, err
 }
