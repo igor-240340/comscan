@@ -1,5 +1,9 @@
 {
   "dependencies": {
     "antd": "^5.27.0"
+  },
+  "scripts": {
+    "prebuild": "cd frontend && npm install",
+    "build": "wails build"
   }
 }
