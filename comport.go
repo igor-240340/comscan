@@ -5,9 +5,11 @@ import (
 )
 
 type ComPort interface {
+	// NOTE: Не совсем "чисто", должен возвращать нашу структуру вместо []*enumerator.PortDetails
+	// чтобы не было привязки к конкретной библиотеке.
 	Enumerate() ([]*enumerator.PortDetails, error)
 	Open(portName string) error
 	Close() error
-	Write([]byte) (int, error)
-	Read([]byte) (int, error)
+	Write(p []byte) (int, error)
+	Read(p []byte) (int, error)
 }

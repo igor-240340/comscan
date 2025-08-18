@@ -1,39 +1,39 @@
 package main
 
 import (
-	"errors"
-
 	"go.bug.st/serial"
 	"go.bug.st/serial/enumerator"
 )
 
+// Реализует интерфейс ComPort.
 type ComPortMock struct {
 	port serial.Port
+
+	// Конфигураторы поведения основных методов.
+	// Настраиваются в вызывающем коде: например, в тестах.
+	EnumerateFunc func() ([]*enumerator.PortDetails, error)
+	OpenFunc      func(portName string) error
+	CloseFunc     func() error
+	ReadFunc      func(p []byte) (n int, err error)
+	WriteFunc     func(p []byte) (n int, err error)
 }
 
-// Реализует интерфейс ComPort.
-func (r *ComPortMock) Enumerate() ([]*enumerator.PortDetails, error) {
-	return nil, errors.New("ERROR: ComPortMock.Enumerate()")
+func (c *ComPortMock) Enumerate() ([]*enumerator.PortDetails, error) {
+	return c.EnumerateFunc()
 }
 
-func (r *ComPortMock) Open(portName string) error {
-	mode := &serial.Mode{
-		BaudRate: 115200,
-	}
-	port, err := serial.Open(portName, mode)
-	r.port = port
-	return err
+func (c *ComPortMock) Open(portName string) error {
+	return c.OpenFunc(portName)
 }
 
-func (r *ComPortMock) Close() error {
-	return r.port.Close()
+func (c *ComPortMock) Close() error {
+	return c.CloseFunc()
 }
 
-func (r *ComPortMock) Read(buf []byte) (int, error) {
-	n, err := r.port.Read(buf)
-	return n, err
+func (c *ComPortMock) Read(p []byte) (int, error) {
+	return c.ReadFunc(p)
 }
 
-func (r *ComPortMock) Write(b []byte) (int, error) {
-	return r.port.Write(b)
+func (c *ComPortMock) Write(p []byte) (int, error) {
+	return c.WriteFunc(p)
 }

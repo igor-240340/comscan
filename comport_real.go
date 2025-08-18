@@ -5,33 +5,36 @@ import (
 	"go.bug.st/serial/enumerator"
 )
 
-// Реализует интерфейс ComPort.
+// Реализует интерфейс ComPort и
+// использует для реализации библиотеку serial.
 type ComPortReal struct {
 	port serial.Port
 }
 
-func (r *ComPortReal) Enumerate() ([]*enumerator.PortDetails, error) {
+func (с *ComPortReal) Enumerate() ([]*enumerator.PortDetails, error) {
 	return enumerator.GetDetailedPortsList()
 }
 
-func (r *ComPortReal) Open(portName string) error {
+func (с *ComPortReal) Open(portName string) error {
+	// NOTE: Конечно, для чистоты, конфигуратор подключения нужно вынести наружу
+	// и передавать нашу собственную структуру, чтобы не привязываться к конкретной библиотеке.
 	mode := &serial.Mode{
 		BaudRate: 115200,
 	}
 	port, err := serial.Open(portName, mode)
-	r.port = port
+	с.port = port
 	return err
 }
 
-func (r *ComPortReal) Close() error {
-	return r.port.Close()
+func (с *ComPortReal) Close() error {
+	return с.port.Close()
 }
 
-func (r *ComPortReal) Read(buf []byte) (int, error) {
-	n, err := r.port.Read(buf)
+func (с *ComPortReal) Read(buf []byte) (int, error) {
+	n, err := с.port.Read(buf)
 	return n, err
 }
 
-func (r *ComPortReal) Write(b []byte) (int, error) {
-	return r.port.Write(b)
+func (с *ComPortReal) Write(b []byte) (int, error) {
+	return с.port.Write(b)
 }
