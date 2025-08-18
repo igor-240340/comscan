@@ -11,7 +11,6 @@ import (
 )
 
 // Ошибка при вызове Enumerate().
-//
 // Должен вернуть на фронт nil и ошибку.
 func TestUpdatePortList_Enumerate_Fail(t *testing.T) {
 	comport := &ComPortMock{}
@@ -31,7 +30,6 @@ func TestUpdatePortList_Enumerate_Fail(t *testing.T) {
 }
 
 // Портов нет.
-//
 // Должен вернуть на фронт пустой массив ComPortInfo.
 func TestUpdatePortList_Enumerate_NoPorts(t *testing.T) {
 	comport := &ComPortMock{}
@@ -53,7 +51,6 @@ func TestUpdatePortList_Enumerate_NoPorts(t *testing.T) {
 
 // Есть два обычных COM-порта.
 // USB-портов нет.
-//
 // Должен вернуть на фронт информацию только по обычным портам (без VID/PID).
 // Не должен подключаться и делать пинг.
 func TestUpdatePortList_Enumerate_NoUsbPorts(t *testing.T) {
@@ -89,7 +86,6 @@ func TestUpdatePortList_Enumerate_NoUsbPorts(t *testing.T) {
 
 // Есть два обычных COM-порта.
 // Есть один USB COM-порт, но его VID/PID не удовлетворяет условию.
-//
 // Должен вернуть на фронт информацию по всем портам (включая VID/PID для USB-порта).
 // Не должен подключаться и делать пинг.
 func TestUpdatePortList_UsbPortConditionFalse(t *testing.T) {
@@ -129,7 +125,6 @@ func TestUpdatePortList_UsbPortConditionFalse(t *testing.T) {
 // Есть один USB COM-порт, VID/PID которого не удовлетворяет условию.
 // Есть два USB COM-порта, VID/PID которых удовлетворяют условию.
 // Ошибка при открытии порта.
-//
 // Должен вернуть на фронт ошибку.
 func TestUpdatePortList_UsbPortConditionTrue_Open_Fail(t *testing.T) {
 	comport := &ComPortMock{}
@@ -167,7 +162,6 @@ func TestUpdatePortList_UsbPortConditionTrue_Open_Fail(t *testing.T) {
 // Есть два USB COM-порта, VID/PID которых удовлетворяют условию.
 // Открытие порта.
 // Ошибка при записи в порт.
-//
 // Должен вернуть на фронт ошибку.
 func TestUpdatePortList_UsbPortConditionTrue_Write_Fail(t *testing.T) {
 	comport := &ComPortMock{}
@@ -211,7 +205,6 @@ func TestUpdatePortList_UsbPortConditionTrue_Write_Fail(t *testing.T) {
 // Открытие порта.
 // Запись в порт.
 // Ошибка при чтении порта.
-//
 // Должен вернуть на фронт ошибку.
 func TestUpdatePortList_UsbPortConditionTrue_Read_Fail(t *testing.T) {
 	comport := &ComPortMock{}
@@ -260,7 +253,6 @@ func TestUpdatePortList_UsbPortConditionTrue_Read_Fail(t *testing.T) {
 // Запись в порт.
 // Чтение порта.
 // Ошибка при закрытии порта.
-//
 // Должен вернуть на фронт ошибку.
 func TestUpdatePortList_UsbPortConditionTrue_Close_Fail(t *testing.T) {
 	comport := &ComPortMock{}
@@ -317,7 +309,6 @@ func TestUpdatePortList_UsbPortConditionTrue_Close_Fail(t *testing.T) {
 // Запись в порт.
 // Чтение порта.
 // Закрытие порта.
-//
 // Должен вернуть на фронт список всех портов и
 // значения Ping/Pong для USB COM-портов, удовлетворяющих условию.
 func TestUpdatePortList_UsbPortConditionTrue_Ok(t *testing.T) {
@@ -375,14 +366,3 @@ func TestUpdatePortList_UsbPortConditionTrue_Ok(t *testing.T) {
 		t.Fatalf("not equal: \nactual=%v\nexpected=%v", actualPortList, expectedPortList)
 	}
 }
-
-// func TestReal(t *testing.T) {
-// 	comport := &ComPortReal{}
-// 	app := NewApp(comport)
-
-// 	portList, err := app.UpdatePortList()
-// 	if err != nil {
-// 		t.Fatalf("expected nil")
-// 	}
-// 	fmt.Println(portList)
-// }

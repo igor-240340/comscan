@@ -13,7 +13,7 @@ type ComPortInfo struct {
 	Usb          string
 	Vid          string
 	Pid          string
-	SentData     string // Строки ping/pong
+	SentData     string // Строки ping/pong,
 	ReceivedData string // для портов, подпадающих по условие из ТЗ.
 }
 
@@ -42,7 +42,7 @@ func (a *App) startup(ctx context.Context) {
 // Да и есть ли смысл параллелить, если одновременно будет около десятка устройств,
 // здесь надо смотреть, какой объем данных нужно читать/писать на устройства.
 func (a *App) UpdatePortList() ([]ComPortInfo, error) {
-	fmt.Println("back: UpdatePortList()")
+	fmt.Println("UpdatePortList")
 
 	portInfos, err := a.comport.Enumerate()
 	if err != nil {
@@ -75,20 +75,13 @@ func (a *App) UpdatePortList() ([]ComPortInfo, error) {
 			ReceivedData: "",
 		})
 
-		// Условие.
-		// const VID uint16 = 0x0193
-		// const PID1 uint16 = 0x1771
-		// const PID2 uint16 = 0xf00f
-		// var strBuff string
-		const vid uint16 = 0x2e8a  // Prod
-		const pid1 uint16 = 0xf00a // Prod
-		const pid2 uint16 = 0xf00f // Prod
-		cond := portInfo.VID == strconv.Itoa(int(vid)) &&
-			(portInfo.PID == strconv.Itoa(int(pid1)) || portInfo.PID == strconv.Itoa(int(pid2)))
-			// if portInfo.Name == "COM255" {
-		if cond {
+		const vid uint16 = 0x2e8a
+		const pid1 uint16 = 0xf00a
+		const pid2 uint16 = 0xf00f
+		if portInfo.VID == strconv.Itoa(int(vid)) && (portInfo.PID == strconv.Itoa(int(pid1)) || portInfo.PID == strconv.Itoa(int(pid2))) {
+			fmt.Printf("Open port: %s\n", portInfo.Name)
+
 			err := a.comport.Open(portInfo.Name)
-			// err := a.comport.Open("sdfdsf")
 			if err != nil {
 				return nil, err
 			}
