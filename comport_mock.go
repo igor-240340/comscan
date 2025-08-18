@@ -1,14 +1,11 @@
 package main
 
 import (
-	"go.bug.st/serial"
 	"go.bug.st/serial/enumerator"
 )
 
 // Реализует интерфейс ComPort.
 type ComPortMock struct {
-	port serial.Port
-
 	// Конфигураторы поведения основных методов.
 	// Настраиваются в вызывающем коде: например, в тестах.
 	EnumerateFunc func() ([]*enumerator.PortDetails, error)
