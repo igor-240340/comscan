@@ -56,7 +56,7 @@ func main() {
 			return nil, fmt.Errorf("Enumerate failed")
 		}
 	*/
-	// END: Ошибка при вызове Enumerate()..
+	// END: Ошибка при вызове Enumerate().
 
 	app := NewApp(comport)
 
