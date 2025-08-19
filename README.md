@@ -8,8 +8,6 @@
 Кросскомиляцию Windows->Linux выполнить не удалось: Wails написал, что не поддерживается.  
 Проверил сборку в виртуалке на Lubuntu.  
 
-В /bins на всякий случай положил готовые бинарники для Windows и Linux.
-
 ![](docs/linux_build.png) 
 ![](docs/windows_build.png) 
 ## Build
