@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"reflect"
-	"strconv"
 	"testing"
 
 	"go.bug.st/serial/enumerator"
@@ -135,8 +134,8 @@ func TestUpdatePortList_UsbPortConditionTrue_Open_Fail(t *testing.T) {
 		port1 := &enumerator.PortDetails{Name: "COM1"}
 		port2 := &enumerator.PortDetails{Name: "COM2"}
 		port3 := &enumerator.PortDetails{Name: "COM3", IsUSB: true, VID: "0403", PID: "6001"}
-		port4 := &enumerator.PortDetails{Name: "COM4", IsUSB: true, VID: strconv.Itoa(int(0x2e8a)), PID: strconv.Itoa(int(0xf00a))}
-		port5 := &enumerator.PortDetails{Name: "COM5", IsUSB: true, VID: strconv.Itoa(int(0x2e8a)), PID: strconv.Itoa(int(0xf00f))}
+		port4 := &enumerator.PortDetails{Name: "COM4", IsUSB: true, VID: "2e8a", PID: "f00a"}
+		port5 := &enumerator.PortDetails{Name: "COM5", IsUSB: true, VID: "2E8A", PID: "F00F"}
 
 		var res []*enumerator.PortDetails
 		res = append(res, port1, port2, port3, port4, port5)
@@ -172,8 +171,8 @@ func TestUpdatePortList_UsbPortConditionTrue_Write_Fail(t *testing.T) {
 		port1 := &enumerator.PortDetails{Name: "COM1"}
 		port2 := &enumerator.PortDetails{Name: "COM2"}
 		port3 := &enumerator.PortDetails{Name: "COM3", IsUSB: true, VID: "0403", PID: "6001"}
-		port4 := &enumerator.PortDetails{Name: "COM4", IsUSB: true, VID: strconv.Itoa(int(0x2e8a)), PID: strconv.Itoa(int(0xf00a))}
-		port5 := &enumerator.PortDetails{Name: "COM5", IsUSB: true, VID: strconv.Itoa(int(0x2e8a)), PID: strconv.Itoa(int(0xf00f))}
+		port4 := &enumerator.PortDetails{Name: "COM4", IsUSB: true, VID: "2e8a", PID: "f00a"}
+		port5 := &enumerator.PortDetails{Name: "COM5", IsUSB: true, VID: "2E8A", PID: "F00F"}
 
 		var res []*enumerator.PortDetails
 		res = append(res, port1, port2, port3, port4, port5)
@@ -215,8 +214,8 @@ func TestUpdatePortList_UsbPortConditionTrue_Read_Fail(t *testing.T) {
 		port1 := &enumerator.PortDetails{Name: "COM1"}
 		port2 := &enumerator.PortDetails{Name: "COM2"}
 		port3 := &enumerator.PortDetails{Name: "COM3", IsUSB: true, VID: "0403", PID: "6001"}
-		port4 := &enumerator.PortDetails{Name: "COM4", IsUSB: true, VID: strconv.Itoa(int(0x2e8a)), PID: strconv.Itoa(int(0xf00a))}
-		port5 := &enumerator.PortDetails{Name: "COM5", IsUSB: true, VID: strconv.Itoa(int(0x2e8a)), PID: strconv.Itoa(int(0xf00f))}
+		port4 := &enumerator.PortDetails{Name: "COM4", IsUSB: true, VID: "2e8a", PID: "f00a"}
+		port5 := &enumerator.PortDetails{Name: "COM5", IsUSB: true, VID: "2E8A", PID: "F00F"}
 
 		var res []*enumerator.PortDetails
 		res = append(res, port1, port2, port3, port4, port5)
@@ -263,8 +262,8 @@ func TestUpdatePortList_UsbPortConditionTrue_Close_Fail(t *testing.T) {
 		port1 := &enumerator.PortDetails{Name: "COM1"}
 		port2 := &enumerator.PortDetails{Name: "COM2"}
 		port3 := &enumerator.PortDetails{Name: "COM3", IsUSB: true, VID: "0403", PID: "6001"}
-		port4 := &enumerator.PortDetails{Name: "COM4", IsUSB: true, VID: strconv.Itoa(int(0x2e8a)), PID: strconv.Itoa(int(0xf00a))}
-		port5 := &enumerator.PortDetails{Name: "COM5", IsUSB: true, VID: strconv.Itoa(int(0x2e8a)), PID: strconv.Itoa(int(0xf00f))}
+		port4 := &enumerator.PortDetails{Name: "COM4", IsUSB: true, VID: "2e8a", PID: "f00a"}
+		port5 := &enumerator.PortDetails{Name: "COM5", IsUSB: true, VID: "2E8A", PID: "F00F"}
 
 		var res []*enumerator.PortDetails
 		res = append(res, port1, port2, port3, port4, port5)
@@ -316,12 +315,11 @@ func TestUpdatePortList_UsbPortConditionTrue_Ok(t *testing.T) {
 	app := NewApp(comport)
 
 	comport.EnumerateFunc = func() ([]*enumerator.PortDetails, error) {
-		// Все остальные поля - в нули.
 		port1 := &enumerator.PortDetails{Name: "COM1"}
 		port2 := &enumerator.PortDetails{Name: "COM2"}
 		port3 := &enumerator.PortDetails{Name: "COM3", IsUSB: true, VID: "0403", PID: "6001"}
-		port4 := &enumerator.PortDetails{Name: "COM4", IsUSB: true, VID: strconv.Itoa(int(0x2e8a)), PID: strconv.Itoa(int(0xf00a))}
-		port5 := &enumerator.PortDetails{Name: "COM5", IsUSB: true, VID: strconv.Itoa(int(0x2e8a)), PID: strconv.Itoa(int(0xf00f))}
+		port4 := &enumerator.PortDetails{Name: "COM4", IsUSB: true, VID: "2e8a", PID: "f00a"}
+		port5 := &enumerator.PortDetails{Name: "COM5", IsUSB: true, VID: "2E8A", PID: "F00F"}
 
 		var res []*enumerator.PortDetails
 		res = append(res, port1, port2, port3, port4, port5)
@@ -352,8 +350,8 @@ func TestUpdatePortList_UsbPortConditionTrue_Ok(t *testing.T) {
 		{Name: "COM1", Usb: "false", Vid: "", Pid: "", SentData: "", ReceivedData: ""},
 		{Name: "COM2", Usb: "false", Vid: "", Pid: "", SentData: "", ReceivedData: ""},
 		{Name: "COM3", Usb: "true", Vid: "0403", Pid: "6001", SentData: "", ReceivedData: ""},
-		{Name: "COM4", Usb: "true", Vid: "11914", Pid: "61450", SentData: "AT+VERSION\r\n", ReceivedData: "v1.2.3 Device1\r\n"},
-		{Name: "COM5", Usb: "true", Vid: "11914", Pid: "61455", SentData: "AT+VERSION\r\n", ReceivedData: "v1.2.3 Device2\r\n"},
+		{Name: "COM4", Usb: "true", Vid: "2e8a", Pid: "f00a", SentData: "AT+VERSION\r\n", ReceivedData: "v1.2.3 Device1\r\n"},
+		{Name: "COM5", Usb: "true", Vid: "2E8A", Pid: "F00F", SentData: "AT+VERSION\r\n", ReceivedData: "v1.2.3 Device2\r\n"},
 	}
 	actualPortList, err := app.UpdatePortList()
 	if err != nil {

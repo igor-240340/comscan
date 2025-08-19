@@ -75,10 +75,9 @@ func (a *App) UpdatePortList() ([]ComPortInfo, error) {
 			ReceivedData: "",
 		})
 
-		const vid uint16 = 0x2e8a
-		const pid1 uint16 = 0xf00a
-		const pid2 uint16 = 0xf00f
-		if portInfo.VID == strconv.Itoa(int(vid)) && (portInfo.PID == strconv.Itoa(int(pid1)) || portInfo.PID == strconv.Itoa(int(pid2))) {
+		vid := strings.ToLower(portInfo.VID)
+		pid := strings.ToLower(portInfo.PID)
+		if vid == "2e8a" && (pid == "f00a" || pid == "f00f") {
 			fmt.Printf("Open port: %s\n", portInfo.Name)
 
 			err := a.comport.Open(portInfo.Name)
