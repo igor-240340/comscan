@@ -57,7 +57,6 @@ func TestUpdatePortList_Enumerate_NoUsbPorts(t *testing.T) {
 	app := NewApp(comport)
 
 	comport.EnumerateFunc = func() ([]*enumerator.PortDetails, error) {
-		// Все остальные поля - в нули.
 		port1 := &enumerator.PortDetails{Name: "COM1"}
 		port2 := &enumerator.PortDetails{Name: "COM2"}
 
@@ -92,7 +91,6 @@ func TestUpdatePortList_UsbPortConditionFalse(t *testing.T) {
 	app := NewApp(comport)
 
 	comport.EnumerateFunc = func() ([]*enumerator.PortDetails, error) {
-		// Все остальные поля - в нули.
 		port1 := &enumerator.PortDetails{Name: "COM1"}
 		port2 := &enumerator.PortDetails{Name: "COM2"}
 		port3 := &enumerator.PortDetails{Name: "COM3", IsUSB: true, VID: "0403", PID: "6001"}
@@ -130,7 +128,6 @@ func TestUpdatePortList_UsbPortConditionTrue_Open_Fail(t *testing.T) {
 	app := NewApp(comport)
 
 	comport.EnumerateFunc = func() ([]*enumerator.PortDetails, error) {
-		// Все остальные поля - в нули.
 		port1 := &enumerator.PortDetails{Name: "COM1"}
 		port2 := &enumerator.PortDetails{Name: "COM2"}
 		port3 := &enumerator.PortDetails{Name: "COM3", IsUSB: true, VID: "0403", PID: "6001"}
@@ -167,7 +164,6 @@ func TestUpdatePortList_UsbPortConditionTrue_Write_Fail(t *testing.T) {
 	app := NewApp(comport)
 
 	comport.EnumerateFunc = func() ([]*enumerator.PortDetails, error) {
-		// Все остальные поля - в нули.
 		port1 := &enumerator.PortDetails{Name: "COM1"}
 		port2 := &enumerator.PortDetails{Name: "COM2"}
 		port3 := &enumerator.PortDetails{Name: "COM3", IsUSB: true, VID: "0403", PID: "6001"}
@@ -210,7 +206,6 @@ func TestUpdatePortList_UsbPortConditionTrue_Read_Fail(t *testing.T) {
 	app := NewApp(comport)
 
 	comport.EnumerateFunc = func() ([]*enumerator.PortDetails, error) {
-		// Все остальные поля - в нули.
 		port1 := &enumerator.PortDetails{Name: "COM1"}
 		port2 := &enumerator.PortDetails{Name: "COM2"}
 		port3 := &enumerator.PortDetails{Name: "COM3", IsUSB: true, VID: "0403", PID: "6001"}
@@ -258,7 +253,6 @@ func TestUpdatePortList_UsbPortConditionTrue_Close_Fail(t *testing.T) {
 	app := NewApp(comport)
 
 	comport.EnumerateFunc = func() ([]*enumerator.PortDetails, error) {
-		// Все остальные поля - в нули.
 		port1 := &enumerator.PortDetails{Name: "COM1"}
 		port2 := &enumerator.PortDetails{Name: "COM2"}
 		port3 := &enumerator.PortDetails{Name: "COM3", IsUSB: true, VID: "0403", PID: "6001"}
@@ -339,6 +333,71 @@ func TestUpdatePortList_UsbPortConditionTrue_Ok(t *testing.T) {
 	var deviceNumber = 1
 	comport.ReadFunc = func(p []byte) (int, error) {
 		str := fmt.Sprintf("v1.2.3 Device%d\r\n", deviceNumber)
+		deviceNumber++
+		n := copy(p, []byte(str))
+		return n, nil
+	}
+
+	comport.CloseFunc = func() error { return nil }
+
+	expectedPortList := []ComPortInfo{
+		{Name: "COM1", Usb: "false", Vid: "", Pid: "", SentData: "", ReceivedData: ""},
+		{Name: "COM2", Usb: "false", Vid: "", Pid: "", SentData: "", ReceivedData: ""},
+		{Name: "COM3", Usb: "true", Vid: "0403", Pid: "6001", SentData: "", ReceivedData: ""},
+		{Name: "COM4", Usb: "true", Vid: "2e8a", Pid: "f00a", SentData: "AT+VERSION\r\n", ReceivedData: "v1.2.3 Device1\r\n"},
+		{Name: "COM5", Usb: "true", Vid: "2E8A", Pid: "F00F", SentData: "AT+VERSION\r\n", ReceivedData: "v1.2.3 Device2\r\n"},
+	}
+	actualPortList, err := app.UpdatePortList()
+	if err != nil {
+		t.Fatalf("expected nil")
+	}
+	if len(actualPortList) != len(expectedPortList) {
+		t.Fatalf("expected %d", len(expectedPortList))
+	}
+	if !reflect.DeepEqual(actualPortList, expectedPortList) {
+		t.Fatalf("not equal: \nactual=%v\nexpected=%v", actualPortList, expectedPortList)
+	}
+}
+
+// Есть два обычных COM-порта.
+// Есть один USB COM-порт, VID/PID которого не удовлетворяет условию.
+// Есть два USB COM-порта, VID/PID которых удовлетворяют условию.
+// Открытие порта.
+// Запись в порт.
+// Чтение порта: приходят байты, в которых несколько раз встречается \r\n.
+// Закрытие порта.
+// Должен вернуть на фронт список всех портов и
+// значения Ping/Pong для USB COM-портов, удовлетворяющих условию.
+// При этом ответ Pong должен содержать только байты до первого \r\n.
+func TestUpdatePortList_UsbPortConditionTrue_MultipleRN(t *testing.T) {
+	comport := &ComPortMock{}
+	app := NewApp(comport)
+
+	comport.EnumerateFunc = func() ([]*enumerator.PortDetails, error) {
+		port1 := &enumerator.PortDetails{Name: "COM1"}
+		port2 := &enumerator.PortDetails{Name: "COM2"}
+		port3 := &enumerator.PortDetails{Name: "COM3", IsUSB: true, VID: "0403", PID: "6001"}
+		port4 := &enumerator.PortDetails{Name: "COM4", IsUSB: true, VID: "2e8a", PID: "f00a"}
+		port5 := &enumerator.PortDetails{Name: "COM5", IsUSB: true, VID: "2E8A", PID: "F00F"}
+
+		var res []*enumerator.PortDetails
+		res = append(res, port1, port2, port3, port4, port5)
+
+		return res, nil
+	}
+
+	comport.OpenFunc = func(portName string) error { return nil }
+
+	comport.WriteFunc = func(p []byte) (int, error) {
+		if !bytes.Equal(p, []byte("AT+VERSION\r\n")) {
+			t.Fatalf("expected %s", string([]byte("AT+VERSION\r\n")))
+		}
+		return len([]byte("AT+VERSION\r\n")), nil
+	}
+
+	var deviceNumber = 1
+	comport.ReadFunc = func(p []byte) (int, error) {
+		str := fmt.Sprintf("v1.2.3 Device%d\r\nOK\r\n", deviceNumber)
 		deviceNumber++
 		n := copy(p, []byte(str))
 		return n, nil

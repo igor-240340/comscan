@@ -19,12 +19,11 @@ func main() {
 	// BEGIN: Успешный сценарий.
 	/*
 		comport.EnumerateFunc = func() ([]*enumerator.PortDetails, error) {
-			// Все остальные поля - в нули.
 			port1 := &enumerator.PortDetails{Name: "COM1"}
 			port2 := &enumerator.PortDetails{Name: "COM2"}
 			port3 := &enumerator.PortDetails{Name: "COM3", IsUSB: true, VID: "0403", PID: "6001"}
-			port4 := &enumerator.PortDetails{Name: "COM4", IsUSB: true, VID: strconv.Itoa(int(0x2e8a)), PID: strconv.Itoa(int(0xf00a))}
-			port5 := &enumerator.PortDetails{Name: "COM5", IsUSB: true, VID: strconv.Itoa(int(0x2e8a)), PID: strconv.Itoa(int(0xf00f))}
+			port4 := &enumerator.PortDetails{Name: "COM4", IsUSB: true, VID: "2e8a", PID: "f00a"}
+			port5 := &enumerator.PortDetails{Name: "COM5", IsUSB: true, VID: "2E8A", PID: "F00F"}
 
 			var res []*enumerator.PortDetails
 			res = append(res, port1, port2, port3, port4, port5)
@@ -40,7 +39,7 @@ func main() {
 
 		var deviceNumber = 1
 		comport.ReadFunc = func(p []byte) (int, error) {
-			str := fmt.Sprintf("v1.2.3 Device%d\r\n", deviceNumber)
+			str := fmt.Sprintf("v1.2.3 Device%d\r\nOK\r\n", deviceNumber)
 			deviceNumber++
 			n := copy(p, []byte(str))
 			return n, nil

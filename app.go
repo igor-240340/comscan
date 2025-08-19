@@ -42,7 +42,7 @@ func (a *App) startup(ctx context.Context) {
 // Да и есть ли смысл параллелить, если одновременно будет около десятка устройств,
 // здесь надо смотреть, какой объем данных нужно читать/писать на устройства.
 func (a *App) UpdatePortList() ([]ComPortInfo, error) {
-	fmt.Println("UpdatePortList")
+	const sendMessage string = "AT+VERSION\r\n"
 
 	portInfos, err := a.comport.Enumerate()
 	if err != nil {
@@ -54,18 +54,6 @@ func (a *App) UpdatePortList() ([]ComPortInfo, error) {
 
 	var portList []ComPortInfo
 	for i, portInfo := range portInfos {
-		/*
-			fmt.Printf("Port: %s\n", portInfo.Name)
-
-			if portInfo.Product != "" {
-				fmt.Printf("   Product Name: %s\n", portInfo.Product)
-			}
-			if portInfo.IsUSB {
-				fmt.Printf("   USB ID      : %s:%s\n", portInfo.VID, portInfo.PID)
-				fmt.Printf("   USB serial  : %s\n", portInfo.SerialNumber)
-			}
-		*/
-
 		portList = append(portList, ComPortInfo{
 			Name:         portInfo.Name,
 			Usb:          strconv.FormatBool(portInfo.IsUSB),
@@ -85,10 +73,11 @@ func (a *App) UpdatePortList() ([]ComPortInfo, error) {
 				return nil, err
 			}
 
-			n, err := a.comport.Write([]byte("AT+VERSION\r\n"))
+			n, err := a.comport.Write([]byte(sendMessage))
 			if err != nil {
 				return nil, err
 			}
+			portList[i].SentData = sendMessage
 			fmt.Printf("Sent %v bytes\n", n)
 
 			buff := make([]byte, 100)
@@ -98,11 +87,12 @@ func (a *App) UpdatePortList() ([]ComPortInfo, error) {
 				if err != nil {
 					return nil, err
 				}
-
-				msg = append(msg, buff[:n]...)
 				fmt.Printf("%s", string(buff[:n]))
 
+				msg = append(msg, buff[:n]...)
+
 				if strings.Contains(string(msg), "\r\n") {
+					portList[i].ReceivedData = strings.SplitAfterN(string(msg), "\r\n", 2)[0]
 					break
 				}
 			}
@@ -110,9 +100,6 @@ func (a *App) UpdatePortList() ([]ComPortInfo, error) {
 			if err != nil {
 				return nil, err
 			}
-
-			portList[i].SentData = "AT+VERSION\r\n"
-			portList[i].ReceivedData = string(msg)
 		}
 	}
 
